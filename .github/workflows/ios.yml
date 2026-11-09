@@ -110,6 +110,10 @@ jobs:
               print("::error::Anahtarın yetkisi yetersiz (403). Anahtarı 'Admin' erişimiyle yeniden oluşturun.")
               sys.exit(1)
           if code == 200 and not body.get("data"):
+              c3, apps = get("/v1/apps?limit=50&fields[apps]=name,bundleId")
+              print("Hesaptaki uygulamalar: " + (", ".join(f"{a['attributes'].get('name')} [{a['attributes'].get('bundleId')}]" for a in apps.get("data", [])) or "YOK"))
+              c4, bids = get("/v1/bundleIds?limit=200&fields[bundleIds]=identifier,name,platform")
+              print("Kayıtlı Bundle ID'ler: " + (", ".join(f"{b['attributes'].get('identifier')} ({b['attributes'].get('name')})" for b in bids.get("data", [])) or "YOK"))
               print("::error::App Store Connect'te com.zetx.drop uygulama kaydı yok. Uygulamalar → + → Yeni Uygulama ile oluşturun.")
               sys.exit(1)
           if code == 200:
