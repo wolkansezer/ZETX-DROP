@@ -37,10 +37,17 @@ jobs:
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO -quiet
 
-      - name: Missing secrets
-        if: env.HAS_SECRETS != 'true'
+      - name: Check secrets
+        env:
+          A: ${{ secrets.ASC_KEY_ID != '' }}
+          B: ${{ secrets.ASC_ISSUER_ID != '' }}
+          C: ${{ secrets.ASC_KEY_P8 != '' }}
+          D: ${{ secrets.APPLE_TEAM_ID != '' }}
         run: |
-          echo "::warning::Derleme başarılı. TestFlight'a yüklemek için repo Secrets'a ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 ve APPLE_TEAM_ID ekleyin."
+          echo "ASC_KEY_ID=$A ASC_ISSUER_ID=$B ASC_KEY_P8=$C APPLE_TEAM_ID=$D"
+          if [ "$HAS_SECRETS" != "true" ]; then
+            echo "::warning::Eksik secret var: ASC_KEY_ID=$A ASC_ISSUER_ID=$B ASC_KEY_P8=$C APPLE_TEAM_ID=$D (Settings → Secrets and variables → Actions → Repository secrets)"
+          fi
 
       - name: App Store Connect API key
         if: env.HAS_SECRETS == 'true'
