@@ -9,6 +9,8 @@ final class AppStore: ObservableObject {
     @Published var deviceName: String { didSet { defaults.set(deviceName, forKey: "name") } }
     @Published var autoSave: Bool { didSet { defaults.set(autoSave, forKey: "autoSave") } }
     @Published var nearbyEnabled: Bool { didSet { defaults.set(nearbyEnabled, forKey: "nearby"); peers.setEnabled(nearbyEnabled) } }
+    @Published var cloudURL: String { didSet { defaults.set(cloudURL, forKey: "cloudURL") } }
+    @Published var cloudKeySet: Bool
 
     // PC connection
     enum PCState: Equatable { case searching, connected, notFound }
@@ -38,6 +40,7 @@ final class AppStore: ObservableObject {
     private var scanTask: Task<Void, Never>?
     private var handled = Set<String>()
     private var lastEvent = Date()
+    var cloudKeys: [String: String] = [:]
 
     init() {
         let d = UserDefaults.standard
@@ -51,6 +54,8 @@ final class AppStore: ObservableObject {
         deviceName = name
         autoSave = d.object(forKey: "autoSave") as? Bool ?? true
         nearbyEnabled = d.object(forKey: "nearby") as? Bool ?? true
+        cloudURL = d.string(forKey: "cloudURL") ?? ""
+        cloudKeySet = Keychain.get("cobaltKey") != nil
         peers = PeerService(name: name)
         peers.enabled = nearbyEnabled
         wirePeers()
@@ -275,7 +280,7 @@ final class AppStore: ObservableObject {
         }
     }
 
-    private func finishReceive(_ url: URL, from: String, key: String) async {
+    func finishReceive(_ url: URL, from: String, key: String) async {
         let name = url.lastPathComponent
         var saved = false
         var detail = "Dosyalar → ZETX DROP → Gelenler"
@@ -442,6 +447,14 @@ final class AppStore: ObservableObject {
     }
 
     func cancelJob(_ job: MediaJob) {
+        if job.id.hasPrefix("cl-") {
+            if let i = jobs.firstIndex(where: { $0.id == job.id }) {
+                jobs[i].state = "error"
+                jobs[i].message = "✗ İptal edildi"
+            }
+            if let k = cloudKeys[job.id] { Net.shared.cancel(k) }
+            return
+        }
         guard let base else { return }
         var comps = URLComponents(url: base.appendingPathComponent("api/media/cancel"), resolvingAgainstBaseURL: false)!
         comps.queryItems = [URLQueryItem(name: "id", value: job.id)]

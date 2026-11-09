@@ -306,6 +306,66 @@ struct TransferRow: View {
 
 struct MediaView: View {
     @EnvironmentObject var store: AppStore
+    @State private var source = "cloud"
+
+    private var useCloud: Bool { store.cloudReady && (source == "cloud" || store.pc == nil) }
+
+    var body: some View {
+        Screen(title: "Medya İndir", subtitle: "Instagram, YouTube, TikTok, X… bağlantısını yapıştırın.") {
+            if store.cloudReady && store.pc != nil {
+                Picker("İndiren", selection: $source) {
+                    Text("Bulut sunucu").tag("cloud")
+                    Text("Bilgisayar").tag("pc")
+                }
+                .pickerStyle(.segmented)
+            }
+            if useCloud {
+                CloudMediaPanel()
+            } else if store.pc != nil {
+                PCMediaPanel()
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    Label("İndirme sunucusu ayarlanmadı", systemImage: "icloud.slash").font(.headline)
+                    Text("Bilgisayar olmadan indirmek için Ayarlar → İndirme sunucusu bölümüne sunucu adresinizi ve API anahtarınızı girin. Ya da bilgisayardaki ZETX DROP'u açın.")
+                        .font(.footnote).foregroundColor(Theme.mut)
+                }
+                .card()
+            }
+            JobsCard()
+            Text("Yalnızca indirme hakkına sahip olduğunuz içerikleri indirin.").font(.caption2).foregroundColor(Theme.mut)
+        }
+    }
+}
+
+struct JobsCard: View {
+    @EnvironmentObject var store: AppStore
+
+    var body: some View {
+        if !store.jobs.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("İndirmeler").font(.headline)
+                ForEach(store.jobs) { j in
+                    VStack(alignment: .leading, spacing: 5) {
+                        HStack {
+                            Text(j.title).font(.system(size: 14, weight: .semibold)).lineLimit(1)
+                            Spacer()
+                            if j.state != "done" && j.state != "error" {
+                                Button { store.cancelJob(j) } label: { Image(systemName: "xmark.circle.fill").foregroundColor(Theme.mut) }
+                            }
+                        }
+                        Text("\(j.label) · \(j.message)").font(.caption).foregroundColor(j.state == "error" ? Theme.err : Theme.mut).lineLimit(3)
+                        if j.state != "done" && j.state != "error" { ProgressView(value: j.pct, total: 100).tint(Theme.c1) }
+                    }
+                    .padding(10).background(Theme.bg.opacity(0.6)).clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
+            .card()
+        }
+    }
+}
+
+struct PCMediaPanel: View {
+    @EnvironmentObject var store: AppStore
     @State private var link = ""
     @State private var info: MediaInfo?
     @State private var busy = false
@@ -316,15 +376,7 @@ struct MediaView: View {
     @State private var target = "self"
 
     var body: some View {
-        Screen(title: "Medya İndir", subtitle: "Instagram, YouTube, TikTok, X… bağlantısını yapıştırın.") {
-            if store.pc == nil {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Bilgisayar gerekli", systemImage: "desktopcomputer").font(.headline)
-                    Text("Videoları bilgisayardaki ZETX DROP indirir ve iPhone'unuza gönderir. Bilgisayarda programı açın; aynı Wi-Fi'da olun.")
-                        .font(.footnote).foregroundColor(Theme.mut)
-                }
-                .card()
-            }
+        VStack(alignment: .leading, spacing: 16) {
             if let b = store.toolBanner {
                 Text(b).font(.footnote).card()
             }
@@ -353,27 +405,6 @@ struct MediaView: View {
 
             if let info { options(info) }
 
-            if !store.jobs.isEmpty {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("İndirmeler").font(.headline)
-                    ForEach(store.jobs) { j in
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack {
-                                Text(j.title).font(.system(size: 14, weight: .semibold)).lineLimit(1)
-                                Spacer()
-                                if j.state != "done" && j.state != "error" {
-                                    Button { store.cancelJob(j) } label: { Image(systemName: "xmark.circle.fill").foregroundColor(Theme.mut) }
-                                }
-                            }
-                            Text("\(j.label) · \(j.message)").font(.caption).foregroundColor(j.state == "error" ? Theme.err : Theme.mut).lineLimit(3)
-                            if j.state != "done" && j.state != "error" { ProgressView(value: j.pct, total: 100).tint(Theme.c1) }
-                        }
-                        .padding(10).background(Theme.bg.opacity(0.6)).clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-                .card()
-            }
-            Text("Yalnızca indirme hakkına sahip olduğunuz içerikleri indirin.").font(.caption2).foregroundColor(Theme.mut)
         }
     }
 
@@ -570,6 +601,8 @@ struct SettingsView: View {
                 }
             }
             .card()
+
+            CloudSettingsCard()
 
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
