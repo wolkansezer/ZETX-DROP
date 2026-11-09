@@ -10,8 +10,8 @@ AirDrop gibi çalışan dosya aktarımı + sosyal medya indirici. Geliştirici: 
 Her `main` push'unda GitHub Actions uygulamayı Mac sunucusunda derler ve App Store Connect'e yükler.
 
 ### Bir kez yapılacaklar
-1. **Bundle ID:** developer.apple.com → Certificates, Identifiers & Profiles → Identifiers → **+** → App IDs → App → Bundle ID: `com.zetx.drop` (Explicit) → Register.
-2. **Uygulama kaydı:** appstoreconnect.apple.com → Uygulamalar → **+** → Yeni Uygulama → Platform iOS, Ad `ZETX DROP`, Dil Türkçe, Bundle ID `com.zetx.drop`, SKU `zetxdrop`.
+1. **Bundle ID:** developer.apple.com → Certificates, Identifiers & Profiles → Identifiers → **+** → App IDs → App → Bundle ID: `om.zetx.drop` (Explicit) → Register.
+2. **Uygulama kaydı:** appstoreconnect.apple.com → Uygulamalar → **+** → Yeni Uygulama → Platform iOS, Ad `ZETX DROP`, Dil Türkçe, Bundle ID `om.zetx.drop`, SKU `zetxdrop`.
 3. **API anahtarı:** App Store Connect → Kullanıcılar ve Erişim → Entegrasyonlar → App Store Connect API → **+** → Ad `GitHub`, Erişim **Admin** → Oluştur → `.p8` dosyasını indir. **Issuer ID** ve **Key ID**'yi not al.
 4. **Team ID:** developer.apple.com → Account → Membership details → Team ID.
 5. **GitHub Secrets:** Bu repo → Settings → Secrets and variables → Actions → New repository secret:
