@@ -58,9 +58,12 @@ if MODE == "check":
         ga = g["attributes"]
         c, m = call("GET", f"/v1/betaGroups/{g['id']}/betaTesters?limit=200&fields[betaTesters]=email,inviteType,state")
         testers = [re.sub(r"(^.).*(@.*$)", r"\1***\2", (t["attributes"].get("email") or "").lower()) + f" ({t['attributes'].get('state')})" for t in m.get("data", [])]
-        print(f"Grup '{ga['name']}': dahili={ga.get('isInternalGroup')} tüm_yapılara_erişim={ga.get('hasAccessToAllBuilds')} test_kullanıcıları={testers or 'YOK'}")
+        print(f"Grup '{ga['name']}': dahili={ga.get('isInternalGroup')} tüm_yapılara_erişim={ga.get('hasAccessToAllBuilds')} herkese_açık_bağlantı={ga.get('publicLink') if ga.get('publicLinkEnabled') else 'kapalı'} test_kullanıcıları={testers or 'YOK'}")
     if not groups.get("data"):
         print("::warning::Hiç test grubu yok.")
+    c, subs = call("GET", f"/v1/betaAppReviewSubmissions?filter[build]={','.join(b['id'] for b in builds.get('data', []))}") if builds.get("data") else (0, {})
+    for sb in subs.get("data", []):
+        print(f"Harici test incelemesi: {sb['attributes'].get('betaReviewState')} (gönderildi {sb['attributes'].get('submittedDate')})")
     c, users = call("GET", "/v1/users?limit=50&fields[users]=username,roles")
     print("App Store Connect kullanıcıları:", [re.sub(r"(^.).*(@.*$)", r"\1***\2", (u["attributes"].get("username") or "").lower()) + " " + str(u["attributes"].get("roles")) for u in users.get("data", [])])
     sys.exit(0)
