@@ -2,6 +2,12 @@ name: TestFlight kurulumu
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "check = sadece oku, setup = grup kur ve test kullanıcılarını ekle"
+        type: choice
+        options: [check, setup]
+        default: check
 
 jobs:
   setup:
@@ -14,4 +20,5 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          MODE: ${{ inputs.mode || 'check' }}
         run: python3 .github/scripts/testflight.py

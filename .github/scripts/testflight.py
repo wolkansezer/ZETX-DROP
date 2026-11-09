@@ -5,6 +5,7 @@ import json, os, re, sys, time, urllib.error, urllib.request
 import jwt
 
 BUNDLE = "om.zetx.drop"
+MODE = os.environ.get("MODE", "check")
 kid = re.sub(r"\s", "", os.environ["ASC_KEY_ID"])
 iss = re.sub(r"\s", "", os.environ["ASC_ISSUER_ID"])
 raw = os.environ["ASC_KEY_P8"]
@@ -43,6 +44,26 @@ for b in builds.get("data", []):
     print(f"Yapı {a['version']}: durum={a['processingState']} yüklendi={a['uploadedDate']} süresi_doldu={a['expired']} şifreleme={a.get('usesNonExemptEncryption')}")
 if not builds.get("data"):
     print("::warning::Henüz işlenmiş yapı görünmüyor (yükleme yeni ise birkaç dakika bekleyin).")
+
+if MODE == "check":
+    for b in builds.get("data", []):
+        c, d = call("GET", f"/v1/builds/{b['id']}/buildBetaDetail")
+        if c == 200:
+            da = d["data"]["attributes"]
+            print(f"  TestFlight durumu {b['attributes']['version']}: dahili={da.get('internalBuildState')} harici={da.get('externalBuildState')}")
+        c, bg = call("GET", f"/v1/builds/{b['id']}/betaGroups")
+        print(f"  Bu yapının atandığı gruplar: {[g['attributes']['name'] for g in bg.get('data', [])] if c == 200 else c}")
+    c, groups = call("GET", f"/v1/apps/{app}/betaGroups?limit=50")
+    for g in groups.get("data", []):
+        ga = g["attributes"]
+        c, m = call("GET", f"/v1/betaGroups/{g['id']}/betaTesters?limit=200&fields[betaTesters]=email,inviteType,state")
+        testers = [re.sub(r"(^.).*(@.*$)", r"\1***\2", (t["attributes"].get("email") or "").lower()) + f" ({t['attributes'].get('state')})" for t in m.get("data", [])]
+        print(f"Grup '{ga['name']}': dahili={ga.get('isInternalGroup')} tüm_yapılara_erişim={ga.get('hasAccessToAllBuilds')} test_kullanıcıları={testers or 'YOK'}")
+    if not groups.get("data"):
+        print("::warning::Hiç test grubu yok.")
+    c, users = call("GET", "/v1/users?limit=50&fields[users]=username,roles")
+    print("App Store Connect kullanıcıları:", [re.sub(r"(^.).*(@.*$)", r"\1***\2", (u["attributes"].get("username") or "").lower()) + " " + str(u["attributes"].get("roles")) for u in users.get("data", [])])
+    sys.exit(0)
 
 # Builds need an export-compliance answer before testers can install them.
 for b in builds.get("data", []):
