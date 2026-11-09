@@ -1,0 +1,8 @@
+*.xcodeproj/
+ios/ZETXDrop/Info.plist
+build/
+DerivedData/
+*.p8
+windows/dist/
+windows/*.syso
+.DS_Store

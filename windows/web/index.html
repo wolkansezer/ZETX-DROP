@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#070b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZETX DROP">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="icon" href="/favicon.ico">
+<title>ZETX DROP</title>
+<style>
+:root{
+  --bg:#070b14; --bg2:#0c1222; --card:#101830; --card2:#141f3d; --line:#1f2b4d;
+  --tx:#e8eeff; --mut:#8b98bd; --c1:#00e5ff; --c2:#ff2bd6; --ok:#2bff9a; --warn:#ffcc33; --err:#ff4d6d;
+  --grad:linear-gradient(120deg,var(--c1),#7a5cff 55%,var(--c2));
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;font-size:15px}
+body{background:radial-gradient(1200px 600px at 80% -10%,#1a0f3a 0,transparent 60%),radial-gradient(900px 500px at -10% 110%,#03283a 0,transparent 60%),var(--bg);background-attachment:fixed}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--c1)}
+.app{display:flex;min-height:100%}
+/* sidebar */
+.side{width:230px;flex:none;padding:22px 14px;border-right:1px solid var(--line);background:rgba(8,12,24,.7);backdrop-filter:blur(10px);display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
+.brand img{width:40px;height:40px;border-radius:11px}
+.brand b{font-size:19px;letter-spacing:1.5px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+.brand small{display:block;color:var(--mut);font-size:11px;letter-spacing:.5px}
+.nav{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;border:0;background:none;cursor:pointer;color:var(--mut);text-align:left;width:100%;position:relative}
+.nav svg{width:20px;height:20px;flex:none}
+.nav:hover{background:var(--bg2);color:var(--tx)}
+.nav.on{background:linear-gradient(90deg,rgba(0,229,255,.14),rgba(255,43,214,.06));color:var(--tx)}
+.nav.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--grad)}
+.badge{margin-left:auto;background:var(--c2);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;font-weight:700}
+.side .grow{flex:1}
+.status{font-size:12px;color:var(--mut);padding:10px 12px;border-radius:12px;background:var(--bg2);line-height:1.5}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--err);margin-right:6px;vertical-align:middle}
+.dot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+main{flex:1;min-width:0;padding:26px 30px 120px;max-width:1180px;margin:0 auto;width:100%}
+.page{display:none;animation:fade .25s ease}
+.page.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:26px;margin:0 0 4px;font-weight:800;letter-spacing:.3px}
+.sub{color:var(--mut);margin:0 0 22px}
+.grid2{display:grid;grid-template-columns:1fr 330px;gap:20px}
+.card{background:linear-gradient(180deg,var(--card),rgba(16,24,48,.75));border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.card h3{margin:0 0 12px;font-size:15px;letter-spacing:.3px}
+.btn{border:0;cursor:pointer;border-radius:12px;padding:11px 16px;font-weight:700;background:var(--card2);border:1px solid var(--line);transition:.15s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn:hover{border-color:#36477a}
+.btn.pri{background:var(--grad);border:0;color:#fff;box-shadow:0 6px 24px rgba(122,92,255,.35)}
+.btn.pri:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:7px 11px;font-size:13px;border-radius:10px}
+.btn.danger{color:var(--err)}
+.btn svg{width:18px;height:18px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.inp{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;transition:.15s}
+.inp:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(0,229,255,.12)}
+label.lb{display:block;font-size:12px;color:var(--mut);margin:12px 0 6px;letter-spacing:.3px}
+/* radar */
+.radar{position:relative;height:430px;border-radius:var(--r);overflow:hidden;background:radial-gradient(circle at 50% 50%,rgba(0,229,255,.08),transparent 65%),var(--card);border:1px solid var(--line)}
+.ring{position:absolute;left:50%;top:50%;border:1px solid rgba(0,229,255,.16);border-radius:50%;transform:translate(-50%,-50%)}
+.pulse{position:absolute;left:50%;top:50%;width:120px;height:120px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid var(--c1);animation:pulse 2.6s infinite;opacity:0}
+.pulse.p2{animation-delay:1.3s;border-color:var(--c2)}
+@keyframes pulse{0%{width:90px;height:90px;opacity:.7}100%{width:560px;height:560px;opacity:0}}
+.me{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;z-index:2}
+.me .av{width:82px;height:82px;border-radius:24px;background:var(--grad);display:grid;place-items:center;margin:0 auto 8px;box-shadow:0 0 40px rgba(122,92,255,.55)}
+.me .av svg{width:40px;height:40px;color:#fff}
+.me b{font-size:13px}
+.me small{display:block;color:var(--mut);font-size:11px}
+.dev{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer;z-index:3;width:110px;transition:transform .2s}
+.dev:hover{transform:translate(-50%,-50%) scale(1.06)}
+.dev .av{width:66px;height:66px;margin:0 auto 7px;border-radius:50%;background:var(--card2);border:2px solid #2c3d70;display:grid;place-items:center;position:relative;transition:.2s}
+.dev .av svg{width:30px;height:30px;color:var(--c1)}
+.dev.drag .av,.dev:hover .av{border-color:var(--c1);box-shadow:0 0 24px rgba(0,229,255,.45)}
+.dev .nm{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dev .kd{font-size:11px;color:var(--mut)}
+.dev .ring-p{position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(var(--c1) var(--p,0%),transparent 0);-webkit-mask:radial-gradient(circle,transparent 60%,#000 62%);mask:radial-gradient(circle,transparent 60%,#000 62%);opacity:0}
+.dev.busy .ring-p{opacity:1}
+.empty-radar{position:absolute;left:0;right:0;bottom:22px;text-align:center;color:var(--mut);font-size:13px;padding:0 20px}
+.drop-hint{margin-top:14px;border:2px dashed var(--line);border-radius:var(--r);padding:16px;text-align:center;color:var(--mut);font-size:13px}
+.drop-hint b{color:var(--tx)}
+.staged{display:none;margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.3);font-size:13px}
+.staged.on{display:flex;gap:10px;align-items:center;justify-content:space-between}
+/* qr */
+.qr{background:#fff;border-radius:16px;padding:12px;width:220px;height:220px;margin:4px auto 12px;display:grid;place-items:center}
+.qr img,.qr canvas{width:196px;height:196px;image-rendering:pixelated}
+.url{font-family:Consolas,monospace;font-size:14px;text-align:center;background:var(--bg2);border-radius:10px;padding:9px;word-break:break-all;user-select:all;color:var(--c1)}
+.tip{font-size:12.5px;color:var(--mut);line-height:1.55;margin-top:12px}
+.tip li{margin:3px 0}
+/* lists */
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--bg2);border:1px solid var(--line)}
+.item .ic{width:42px;height:42px;border-radius:12px;flex:none;display:grid;place-items:center;background:var(--card2);overflow:hidden}
+.item .ic svg{width:22px;height:22px;color:var(--c1)}
+.item .ic img{width:100%;height:100%;object-fit:cover}
+.item .mid{flex:1;min-width:0}
+.item .t{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .m{font-size:12px;color:var(--mut);margin-top:2px}
+.bar{height:6px;border-radius:6px;background:#1b2747;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--grad);transition:width .25s}
+.item.ok .bar i{background:var(--ok)}
+.item.err .m{color:var(--err)}
+.muted{color:var(--mut);font-size:13px;text-align:center;padding:22px}
+/* media */
+.urlbox{display:flex;gap:10px}
+.urlbox .inp{flex:1}
+.info{display:none;margin-top:18px;gap:18px}
+.info.on{display:grid;grid-template-columns:260px 1fr}
+.thumb{width:100%;aspect-ratio:16/10;border-radius:14px;background:var(--bg2) center/cover no-repeat;border:1px solid var(--line)}
+.ttl{font-size:17px;font-weight:800;line-height:1.3;margin:0 0 6px}
+.meta{color:var(--mut);font-size:13px}
+.seg{display:inline-flex;background:var(--bg2);border:1px solid var(--line);border-radius:13px;padding:4px;gap:4px}
+.seg button{border:0;background:none;padding:9px 16px;border-radius:10px;cursor:pointer;color:var(--mut);font-weight:700;display:flex;gap:7px;align-items:center}
+.seg button svg{width:17px;height:17px}
+.seg button.on{background:var(--grad);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg2);padding:8px 13px;border-radius:99px;cursor:pointer;font-weight:700;font-size:13px}
+.chip.on{border-color:var(--c1);color:var(--c1);background:rgba(0,229,255,.1)}
+.chip small{color:var(--mut);font-weight:600;margin-left:4px}
+.sw{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;font-size:14px}
+.sw input{display:none}
+.sw i{width:42px;height:24px;border-radius:99px;background:#26345e;position:relative;transition:.2s;flex:none}
+.sw i::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.sw input:checked+i{background:var(--c1)}
+.sw input:checked+i::after{left:21px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px}
+.note{margin-top:10px;font-size:12.5px;padding:10px 12px;border-radius:12px;background:rgba(255,204,51,.08);border:1px solid rgba(255,204,51,.25);color:#ffe08a;display:none}
+.note.on{display:block}
+.sites{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.sites span{font-size:11.5px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:4px 10px}
+/* banner + toast */
+.banner{display:none;margin-bottom:16px;padding:12px 16px;border-radius:14px;background:rgba(122,92,255,.12);border:1px solid rgba(122,92,255,.35);font-size:13.5px}
+.banner.on{display:block}
+.toasts{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px;z-index:50;max-width:min(380px,calc(100vw - 30px))}
+.toast{background:#121b36;border:1px solid var(--line);border-left:4px solid var(--c1);border-radius:14px;padding:12px 14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font-size:13.5px;animation:fade .2s}
+.toast.ok{border-left-color:var(--ok)}.toast.err{border-left-color:var(--err)}
+.toast .row{margin-top:8px}
+/* about */
+.about{text-align:center;max-width:560px;margin:10px auto}
+.about img{width:120px;height:120px;border-radius:30px;box-shadow:0 0 60px rgba(122,92,255,.45)}
+.about h2{font-size:30px;margin:16px 0 0;letter-spacing:2px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;text-align:left;margin:22px auto 0;max-width:420px}
+.kv span{color:var(--mut)}
+.kv a{color:var(--c1);text-decoration:none;font-weight:700}
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px;text-align:left}
+.feat div{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:12px;font-size:13px}
+.feat b{display:block;margin-bottom:3px}
+.hostonly{}
+body.phone .hostonly{display:none!important}
+body:not(.phone) .phoneonly{display:none!important}
+/* mobile */
+.tabbar{display:none}
+@media (max-width:900px){
+  .side{display:none}
+  main{padding:calc(14px + env(safe-area-inset-top)) 14px calc(100px + env(safe-area-inset-bottom))}
+  .grid2{grid-template-columns:1fr}
+  .info.on{grid-template-columns:1fr}
+  .opts{grid-template-columns:1fr}
+  .radar{height:360px}
+  h1{font-size:22px}
+  .mtop{display:flex!important}
+  .tabbar{display:flex;position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));background:rgba(14,21,42,.92);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:22px;padding:6px;z-index:40;justify-content:space-around}
+  .tabbar .nav{flex-direction:column;gap:3px;font-size:10.5px;padding:8px 4px;text-align:center;align-items:center;width:auto;flex:1}
+  .tabbar .nav.on::before{display:none}
+  .tabbar .nav.on{color:var(--c1);background:rgba(0,229,255,.08)}
+  .tabbar .badge{position:absolute;top:2px;right:18%;margin:0}
+  .feat{grid-template-columns:1fr}
+  .toasts{left:15px;right:15px;bottom:calc(92px + env(safe-area-inset-bottom));max-width:none}
+}
+.saver{position:fixed;inset:0;z-index:100;background:rgba(3,6,14,.82);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;padding:0 0 env(safe-area-inset-bottom)}
+.saver.on{display:flex;animation:fade .2s}
+.sv-box{position:relative;width:100%;max-width:520px;max-height:92vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:24px 24px 0 0;padding:18px 18px 22px;text-align:center}
+.sv-x{position:absolute;right:12px;top:12px;width:40px;height:40px;border-radius:50%;border:0;background:var(--card2);display:grid;place-items:center;cursor:pointer;z-index:2}
+.sv-x svg{width:20px;height:20px}
+.sv-prev{margin:34px auto 12px;display:grid;place-items:center;min-height:120px}
+.sv-prev img,.sv-prev video{max-width:100%;max-height:52vh;border-radius:14px;-webkit-touch-callout:default;-webkit-user-select:auto}
+.sv-prev svg{width:70px;height:70px;color:var(--c1)}
+.sv-t{font-weight:800;word-break:break-all}.sv-m{color:var(--mut);font-size:13px;margin-top:3px}
+.sv-help{margin:14px 0;font-size:13.5px;line-height:1.55;padding:11px 13px;border-radius:14px;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.25);text-align:left}
+.sv-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sv-note{font-size:11.5px;color:var(--mut);margin-top:12px}
+.mtop{display:none;align-items:center;gap:10px;margin-bottom:14px}
+.mtop img{width:36px;height:36px;border-radius:10px}
+.mtop b{font-size:17px;letter-spacing:1.4px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+.mtop .dot{margin-left:auto}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></symbol>
+  <symbol id="i-set" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1A2 2 0 1 1 4.3 17l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1A2 2 0 1 1 7 4.3l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1A2 2 0 1 1 19.7 7l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-pc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-tab" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 10l5-3v10l-5-3z"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  <symbol id="i-img" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18.4 6.6a9 9 0 1 1-12.8 0M12 2v10"/></symbol>
+  <symbol id="i-paste" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></symbol>
+</svg>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><img src="/icon.png" alt=""><div><b>ZETX DROP</b><small>Hızlı dosya aktarımı</small></div></div>
+    <button class="nav on" data-p="send"><svg><use href="#i-send"/></svg>Gönder</button>
+    <button class="nav" data-p="media"><svg><use href="#i-dl"/></svg>Medya İndir</button>
+    <button class="nav" data-p="inbox"><svg><use href="#i-inbox"/></svg>Gelenler<span class="badge" id="badge" hidden>0</span></button>
+    <button class="nav" data-p="settings"><svg><use href="#i-set"/></svg>Ayarlar</button>
+    <button class="nav" data-p="about"><svg><use href="#i-info"/></svg>Hakkında</button>
+    <div class="grow"></div>
+    <div class="status"><span class="dot" id="dot"></span><span id="stat">Bağlanıyor…</span></div>
+    <button class="nav hostonly" id="quitBtn"><svg><use href="#i-power"/></svg>Programı Kapat</button>
+  </aside>
+
+  <main>
+    <div class="mtop"><img src="/icon.png" alt=""><b>ZETX DROP</b><span class="dot" id="dot2"></span></div>
+    <div class="banner" id="toolBanner"></div>
+
+    <!-- SEND -->
+    <section class="page on" id="p-send">
+      <h1>Yakındaki Cihazlar</h1>
+      <p class="sub">Bir cihaza dokunun, dosyaları seçin — aynı Wi-Fi üzerinden tam hızda gönderilir.</p>
+      <div class="grid2">
+        <div>
+          <div class="radar" id="radar">
+            <div class="ring" style="width:200px;height:200px"></div>
+            <div class="ring" style="width:330px;height:330px"></div>
+            <div class="ring" style="width:470px;height:470px"></div>
+            <div class="pulse"></div><div class="pulse p2"></div>
+            <div class="me"><div class="av"><svg id="meIcon"><use href="#i-pc"/></svg></div><b id="meName">Bu cihaz</b><small>Siz</small></div>
+            <div id="devs"></div>
+            <div class="empty-radar" id="emptyRadar">Cihaz aranıyor… Telefonda ZETX DROP adresini açın.</div>
+          </div>
+          <div class="staged" id="staged"><span id="stagedTxt"></span><button class="btn sm" id="unstage"><svg><use href="#i-x"/></svg>Vazgeç</button></div>
+          <div class="drop-hint hostonly"><b>Sürükle & bırak:</b> dosyaları doğrudan bir cihazın üzerine bırakın · veya <a href="#" id="pickFirst">önce dosya seçin</a></div>
+          <div class="drop-hint phoneonly"><a href="#" id="pickFirstM"><b>Önce dosya seç</b></a>, sonra cihaza dokun. Fotoğraf/video seçerken <b>Seçenekler → Orijinal</b> derseniz kalite kaybı olmaz.</div>
+          <div class="card" style="margin-top:16px"><h3>Aktarımlar</h3><div class="list" id="xfers"><div class="muted">Henüz aktarım yok</div></div></div>
+        </div>
+        <div class="hostonly">
+          <div class="card">
+            <h3>📱 Telefonu Bağla</h3>
+            <div class="qr" id="qr"></div>
+            <div class="url" id="url">…</div>
+            <select class="inp" id="ipSel" style="margin-top:10px;display:none"></select>
+            <ul class="tip">
+              <li>Telefon ve PC <b>aynı Wi-Fi</b>'da olmalı.</li>
+              <li>iPhone'da Kamera ile QR'ı okutun → Safari açılır.</li>
+              <li>Safari'de <b>Paylaş → Ana Ekrana Ekle</b> derseniz uygulama gibi açılır.</li>
+              <li>Telefonlar birbirine de dosya gönderebilir.</li>
+              <li>Bağlanamıyorsa: Ayarlar → <b>Güvenlik duvarı izni ver</b>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEDIA -->
+    <section class="page" id="p-media">
+      <h1>Sosyal Medyadan İndir</h1>
+      <p class="sub">Video, görsel veya MP3 — bağlantıyı yapıştırın, çözünürlüğü seçin, istediğiniz cihaza indirin.</p>
+      <div class="card">
+        <div class="urlbox">
+          <input class="inp" id="murl" placeholder="https://www.instagram.com/reel/…  ·  YouTube · TikTok · X · Facebook…" autocomplete="off" inputmode="url">
+          <button class="btn" id="pasteBtn" title="Yapıştır"><svg><use href="#i-paste"/></svg></button>
+          <button class="btn pri" id="anBtn">Analiz Et</button>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <span style="font-size:12.5px;color:var(--mut)">Giriş gerektiren içerik için tarayıcı oturumu:</span>
+          <select class="inp" id="cookies" style="width:auto;padding:7px 10px;font-size:13px">
+            <option value="">Kullanma</option><option value="firefox">Firefox (önerilir)</option><option value="chrome">Chrome</option><option value="edge">Edge</option><option value="brave">Brave</option><option value="opera">Opera</option>
+          </select>
+        </div>
+        <div class="sites"><span>YouTube & Shorts</span><span>Instagram Reels/Post</span><span>TikTok</span><span>X / Twitter</span><span>Facebook</span><span>Twitch</span><span>Vimeo</span><span>Pinterest</span><span>Reddit</span><span>Dailymotion</span><span>+1000 site</span></div>
+
+        <div class="info" id="info">
+          <div><div class="thumb" id="thumb"></div></div>
+          <div>
+            <p class="ttl" id="mtitle"></p>
+            <div class="meta" id="mmeta"></div>
+            <label class="lb">İndirme türü</label>
+            <div class="seg" id="modeSeg">
+              <button data-m="video" class="on"><svg><use href="#i-video"/></svg>Video</button>
+              <button data-m="mp3"><svg><use href="#i-music"/></svg>MP3</button>
+              <button data-m="image"><svg><use href="#i-img"/></svg>Görsel</button>
+            </div>
+            <div id="vOpts">
+              <label class="lb">Çözünürlük</label>
+              <div class="chips" id="resChips"></div>
+            </div>
+            <div id="aOpts" hidden>
+              <label class="lb">MP3 kalitesi</label>
+              <div class="chips" id="brChips">
+                <span class="chip on" data-b="320">320 kbps</span><span class="chip" data-b="256">256 kbps</span><span class="chip" data-b="192">192 kbps</span><span class="chip" data-b="128">128 kbps</span>
+              </div>
+            </div>
+            <div id="iOpts" hidden><label class="lb">Görsel</label><div class="meta">Gönderideki tüm fotoğraflar orijinal çözünürlükte indirilir (galeri/carousel dahil).</div></div>
+            <div class="opts" style="margin-top:14px">
+              <label class="sw" id="compatWrap"><input type="checkbox" id="compat" checked><i></i>iPhone uyumlu (H.264 MP4)</label>
+            </div>
+            <label class="lb">Nereye indirilsin?</label>
+            <select class="inp" id="target"></select>
+            <div class="note" id="mnote"></div>
+            <div class="row" style="margin-top:16px"><button class="btn pri" id="dlBtn"><svg><use href="#i-dl"/></svg>İndir</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3>İndirmeler</h3><div class="list" id="jobs"><div class="muted">Henüz indirme yok</div></div></div>
+    </section>
+
+    <!-- INBOX -->
+    <section class="page" id="p-inbox">
+      <h1>Gelenler</h1>
+      <p class="sub hostonly">Bu PC'ye gelen dosyalar <b id="saveDirTxt"></b> klasörüne kaydedilir.</p>
+      <p class="sub phoneonly">Size gönderilen dosyalar. <b>Kaydet</b>'e dokunun — fotoğrafları doğrudan Fotoğraflar'a, diğer dosyaları Dosyalar'a kaydedebilirsiniz.</p>
+      <div class="row hostonly" style="margin-bottom:14px"><button class="btn" id="openFolder"><svg><use href="#i-folder"/></svg>Klasörü Aç</button></div>
+      <div class="list" id="inbox"><div class="muted">Henüz gelen dosya yok</div></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="page" id="p-settings">
+      <h1>Ayarlar</h1>
+      <p class="sub">Cihaz adı diğer cihazlarda böyle görünür.</p>
+      <div class="grid2">
+        <div class="card">
+          <label class="lb" style="margin-top:0">Cihaz adı</label>
+          <div class="row"><input class="inp" id="sName" style="flex:1" maxlength="40"><button class="btn pri" id="sNameSave">Kaydet</button></div>
+          <div class="hostonly">
+            <label class="lb">Gelen dosyaların kayıt klasörü</label>
+            <div class="row"><input class="inp" id="sDir" style="flex:1"><button class="btn" id="sDirSave">Kaydet</button></div>
+            <div style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
+              <label class="sw"><input type="checkbox" id="sRecv"><i></i>Dosya almaya açık (ağdaki cihazlar bu PC'ye gönderebilir)</label>
+              <label class="sw"><input type="checkbox" id="sAuto"><i></i>Windows açılınca otomatik başlat (telefonlar her zaman bağlanabilir)</label>
+              <label class="sw"><input type="checkbox" id="sQuit"><i></i>Pencere kapanınca programı tamamen kapat (kapalıysa arka planda almaya devam eder)</label>
+            </div>
+          </div>
+        </div>
+        <div class="card phoneonly" id="gsCard">
+          <h3>📸 iPhone: Galeriye kaydetme</h3>
+          <div id="gsDone" hidden><p class="tip" style="margin-top:0">✅ <b>Galeri modu açık.</b> Gelen bir dosyada <b>Kaydet</b> → <b>"Görüntüyü Kaydet" / "Videoyu Kaydet"</b> deyin, doğrudan Fotoğraflar'a gider.</p></div>
+          <div id="gsSetup">
+            <p class="tip" style="margin-top:0">iPhone, fotoğrafı galeriye kaydetme menüsünü yalnızca <b>güvenli bağlantıda</b> açar. Bir kez, sadece dokunarak (yazı yazmadan) açılır:</p>
+            <ol class="tip" style="padding-left:20px">
+              <li><button class="btn sm pri" id="gsProfile">1 · Sertifikayı indir</button> → <b>İzin Ver</b> → <b>Kapat</b>.</li>
+              <li><b>Ayarlar</b> uygulaması → en üstte <b>"Profil İndirildi"</b> → <b>Yükle</b> (şifre) → <b>Yükle</b> → <b>Bitti</b>.</li>
+              <li><b>Ayarlar → Genel → Hakkında → Sertifika Güven Ayarları</b> → <b>ZETX DROP</b> anahtarını açın → <b>Devam</b>.</li>
+              <li><button class="btn sm pri" id="gsGo">2 · Galeri moduna geç</button></li>
+              <li>Açılan sayfada <b>Paylaş → Ana Ekrana Ekle</b> deyin (eski ZETX DROP simgesini silebilirsiniz).</li>
+            </ol>
+            <p class="tip">Sertifika yalnızca ev/ofis ağındaki IP adresleri için geçerlidir; internet sitelerini etkilemez. Ayarlar → Genel → VPN ve Aygıt Yönetimi'nden istediğiniz an kaldırabilirsiniz.</p>
+          </div>
+        </div>
+        <div class="card hostonly">
+          <h3>Sistem</h3>
+          <div class="list">
+            <button class="btn" id="fwBtn">🛡️ Güvenlik duvarı izni ver</button>
+            <button class="btn" id="toolsBtn">⬇️ İndirme motorlarını güncelle</button>
+            <button class="btn" id="openFolder2"><svg><use href="#i-folder"/></svg>Gelen dosyalar klasörü</button>
+          </div>
+          <p class="tip">Telefon bağlanamıyorsa güvenlik duvarı izni verin (yönetici onayı ister). Sosyal medya siteleri değiştikçe indirme bozulursa motorları güncelleyin.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="page" id="p-about">
+      <div class="about">
+        <img src="/icon-512.png" alt="ZETX DROP">
+        <h2>ZETX DROP</h2>
+        <div class="meta" id="ver">Sürüm 1.2.0</div>
+        <p style="color:var(--mut);line-height:1.6;margin-top:14px">PC ve telefonlar arasında AirDrop gibi kablosuz, yüksek hızlı dosya aktarımı ve sosyal medyadan çözünürlük seçmeli video / görsel / MP3 indirme.</p>
+        <div class="kv">
+          <span>Geliştirici</span><b>Volkan Sezer</b>
+          <span>E-posta</span><a href="mailto:volkan.sezer@outlook.com.tr">volkan.sezer@outlook.com.tr</a>
+          <span>Instagram</span><a href="https://www.instagram.com/zetxtv/" target="_blank" rel="noopener">@zetxtv</a>
+          <span>Kanal</span><b>ZETXTV</b>
+        </div>
+        <div class="feat">
+          <div><b>⚡ Yüksek hız</b>Dosyalar sıkıştırılmadan, yerel ağda doğrudan akış ile aktarılır.</div>
+          <div><b>📱 Uygulama gerekmez</b>iPhone/Android tarayıcıdan bağlanır, QR ile saniyeler içinde.</div>
+          <div><b>🔁 Her yöne</b>PC → Telefon, Telefon → PC, Telefon → Telefon, PC → PC.</div>
+          <div><b>🎬 Medya indirici</b>4K'ya kadar video, orijinal görsel, 320 kbps MP3.</div>
+        </div>
+        <p class="tip">© 2026 Volkan Sezer · ZETX. Tüm hakları saklıdır. İndirdiğiniz içeriklerin telif haklarına ve platform kurallarına uymak kullanıcının sorumluluğundadır.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav class="tabbar">
+  <button class="nav on" data-p="send"><svg><use href="#i-send"/></svg>Gönder</button>
+  <button class="nav" data-p="media"><svg><use href="#i-dl"/></svg>İndir</button>
+  <button class="nav" data-p="inbox"><svg><use href="#i-inbox"/></svg>Gelenler<span class="badge" id="badge2" hidden>0</span></button>
+  <button class="nav" data-p="settings"><svg><use href="#i-set"/></svg>Ayarlar</button>
+  <button class="nav" data-p="about"><svg><use href="#i-info"/></svg>Hakkında</button>
+</nav>
+
+<div class="toasts" id="toasts"></div>
+<div class="saver" id="saver" onclick="if(event.target===this)closeSaver()">
+  <div class="sv-box">
+    <button class="sv-x" onclick="closeSaver()" aria-label="Kapat"><svg><use href="#i-x"/></svg></button>
+    <div class="sv-prev"></div>
+    <div class="sv-t"></div><div class="sv-m"></div>
+    <div class="sv-help"></div>
+    <button class="btn pri sv-photos" style="width:100%;margin-bottom:10px">📸 Galeriye Kaydet</button>
+    <div class="sv-btns"><button class="btn sv-open"><svg><use href="#i-dl"/></svg>Dosyalar'a indir</button><button class="btn" onclick="closeSaver()">Kapat</button></div>
+    <div class="sv-note">Açılan pencereyi sağ üstteki <b>Bitti</b> veya <b>✕</b> ile kapatıp ZETX DROP'a dönebilirsiniz.</div>
+  </div>
+</div>
+<input type="file" id="fileIn" multiple hidden>
+
+<script src="/qrcode.js"></script>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const IS_HOST=['127.0.0.1','localhost'].includes(location.hostname);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtSize=b=>{if(b==null||b<0)return'';const u=['B','KB','MB','GB','TB'];let i=0;while(b>=1024&&i<4){b/=1024;i++}return(i?b.toFixed(b<10?2:1):b)+' '+u[i]};
+const fmtSpeed=b=>fmtSize(b)+'/sn';
+const fmtTime=s=>{if(!isFinite(s)||s<0)return'';s=Math.round(s);return s<60?s+' sn':Math.floor(s/60)+' dk '+(s%60)+' sn'};
+function detectKind(){const u=navigator.userAgent;if(/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return'ipad';if(/iPhone|iPod/.test(u))return'iphone';if(/Android/.test(u))return/Mobile/.test(u)?'android':'tablet';return'pc'}
+const KIND=detectKind();
+const KIND_LABEL={host:'PC (sunucu)',peer:'PC',pc:'Bilgisayar',iphone:'iPhone',ipad:'iPad',android:'Android',tablet:'Tablet'};
+const KIND_ICON=k=>({iphone:'i-phone',android:'i-phone',ipad:'i-tab',tablet:'i-tab'}[k]||'i-pc');
+if(!IS_HOST)document.body.classList.add('phone');
+
+// identity
+let me;
+try{me=JSON.parse(localStorage.getItem('zx_me')||'null')}catch(e){}
+if(!me||!me.id||(IS_HOST&&!me.id.startsWith('hostui'))||(!IS_HOST&&me.id.startsWith('hostui'))){
+  const rnd=Math.random().toString(36).slice(2,8);
+  me={id:(IS_HOST?'hostui-':'c-')+rnd+Date.now().toString(36),name:IS_HOST?'Bu PC':(KIND_LABEL[KIND]||'Cihaz')+' '+rnd.slice(0,3).toUpperCase()};
+}
+function saveMe(){try{localStorage.setItem('zx_me',JSON.stringify(me))}catch(e){}}
+saveMe();
+$('#meIcon').innerHTML=`<use href="#${KIND_ICON(IS_HOST?'pc':KIND)}"/>`;
+
+// nav
+function go(p){$$('.nav[data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===p));$$('.page').forEach(s=>s.classList.toggle('on',s.id==='p-'+p));if(p==='inbox'){unseen=0;updBadge()}window.scrollTo(0,0)}
+$$('.nav[data-p]').forEach(b=>b.onclick=()=>go(b.dataset.p));
+
+// toasts
+function toast(html,level='',ms=4500){const t=document.createElement('div');t.className='toast '+level;t.innerHTML=html;$('#toasts').appendChild(t);if(ms)setTimeout(()=>t.remove(),ms);return t}
+
+// ---------- server info ----------
+let info={};
+async function loadInfo(){
+  try{info=await (await fetch('/api/info')).json()}catch(e){return}
+  $('#ver').textContent='Sürüm '+info.version;
+  if(IS_HOST){
+    me.name=info.name;saveMe();$('#meName').textContent=info.name;
+    $('#sName').value=info.name;$('#sDir').value=info.saveDir;$('#saveDirTxt').textContent=info.saveDir;
+    $('#sRecv').checked=info.receive;
+    const ips=info.ips||[];
+    if(ips.length>1){$('#ipSel').style.display='';$('#ipSel').innerHTML=ips.map(i=>`<option>${i}</option>`).join('')}
+    showQR(ips[0]);
+    try{const s=await (await fetch('/api/settings')).json();$('#sQuit').checked=!!s.settings.quitOnClose;$('#sAuto').checked=!!s.settings.autostart}catch(e){}
+  }else{
+    $('#meName').textContent=me.name;$('#sName').value=me.name;
+  }
+}
+function showQR(ip){
+  if(!ip){$('#url').textContent='Ağ bağlantısı bulunamadı';return}
+  const u=`http://${ip}:${info.port}/`;$('#url').textContent=u;
+  try{const q=qrcode(0,'M');q.addData(u);q.make();$('#qr').innerHTML=q.createImgTag(6,0)}catch(e){$('#qr').textContent='QR oluşturulamadı'}
+}
+$('#ipSel').onchange=e=>showQR(e.target.value);
+
+// ---------- events ----------
+let devices=[],es,unseen=0;
+function connect(){
+  es=new EventSource(`/api/events?id=${encodeURIComponent(me.id)}&name=${encodeURIComponent(me.name)}&kind=${IS_HOST?'hostui':KIND}`);
+  es.onopen=()=>setStat(true);
+  es.onerror=()=>setStat(false);
+  es.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(_){return}
+    ({devices:onDevices,incoming:onIncoming,received:onReceived,job:onJob,tool:onTool,toast:x=>toast(esc(x.msg),x.level)}[m.type]||(()=>{}))(m)};
+}
+function setStat(on){$('#dot').classList.toggle('on',on);$('#dot2').classList.toggle('on',on);$('#stat').textContent=on?(IS_HOST?'Hazır · dosya alımı açık':'Bağlı · '+(info.name||'PC')):'Bağlantı yok, tekrar deneniyor…'}
+
+function others(){return devices.filter(d=>IS_HOST?d.id!=='host':d.id!==me.id)}
+function onDevices(m){devices=m.devices||[];renderDevices();renderTargets()}
+function renderDevices(){
+  const list=others(), box=$('#devs'), R=$('#radar').getBoundingClientRect();
+  $('#emptyRadar').style.display=list.length?'none':'';
+  const W=R.width||600,H=R.height||430,cx=W/2,cy=H/2;
+  const rx=Math.min(W/2-70,250),ry=Math.min(H/2-60,165);
+  box.innerHTML=list.map((d,i)=>{
+    const a=-Math.PI/2+(i*(2*Math.PI/Math.max(list.length,1)))+(list.length===1?0:Math.PI/list.length*0);
+    const x=cx+rx*Math.cos(a+(list.length>1?0:0)), y=cy+ry*Math.sin(a)*(list.length===1?1:1);
+    const busy=sending[d.id];
+    return `<div class="dev${busy?' busy':''}" data-id="${esc(d.id)}" style="left:${x}px;top:${y}px"><div class="av"><span class="ring-p" style="--p:${busy?busy.pct:0}%"></span><svg><use href="#${KIND_ICON(d.kind)}"/></svg></div><div class="nm">${esc(d.name)}</div><div class="kd">${esc(KIND_LABEL[d.kind]||'')}</div></div>`}).join('');
+  $$('.dev').forEach(el=>{
+    const d=devices.find(x=>x.id===el.dataset.id);
+    el.onclick=()=>{if(staged.length){sendFiles(d,staged);setStaged([])}else{pickFor=d;$('#fileIn').click()}};
+    el.ondragover=e=>{e.preventDefault();el.classList.add('drag')};
+    el.ondragleave=()=>el.classList.remove('drag');
+    el.ondrop=e=>{e.preventDefault();el.classList.remove('drag');const f=[...e.dataTransfer.files];if(f.length)sendFiles(d,f)};
+  });
+}
+window.addEventListener('resize',renderDevices);
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>e.preventDefault());
+
+// ---------- sending ----------
+let pickFor=null, staged=[], sending={};
+$('#fileIn').onchange=e=>{const f=[...e.target.files];e.target.value='';if(!f.length)return;if(pickFor){sendFiles(pickFor,f);pickFor=null}else setStaged(f)};
+function setStaged(f){staged=f;$('#staged').classList.toggle('on',f.length>0);$('#stagedTxt').innerHTML=`<b>${f.length} dosya</b> hazır (${fmtSize(f.reduce((a,b)=>a+b.size,0))}) — göndermek için bir cihaza dokunun`}
+$('#unstage').onclick=()=>setStaged([]);
+$('#pickFirst').onclick=$('#pickFirstM').onclick=e=>{e.preventDefault();pickFor=null;$('#fileIn').click()};
+
+const xq=[];let xRunning=0;
+function sendFiles(dev,files){
+  if(!dev)return;
+  const total=files.reduce((a,b)=>a+b.size,0);
+  sending[dev.id]=sending[dev.id]||{pct:0,total:0,done:0};
+  sending[dev.id].total+=total;
+  files.forEach(f=>xq.push({dev,file:f,card:addXfer(f,dev)}));
+  pump();renderDevices();
+}
+function pump(){while(xRunning<2&&xq.length){const j=xq.shift();xRunning++;upload(j).finally(()=>{xRunning--;pump()})}}
+function addXfer(f,dev){
+  const box=$('#xfers');if(box.querySelector('.muted'))box.innerHTML='';
+  const el=document.createElement('div');el.className='item';
+  el.innerHTML=`<div class="ic"><svg><use href="#i-file"/></svg></div><div class="mid"><div class="t">${esc(f.name)}</div><div class="m">→ ${esc(dev.name)} · ${fmtSize(f.size)} · sırada</div><div class="bar"><i></i></div></div><button class="btn sm danger">İptal</button>`;
+  box.prepend(el);return el;
+}
+function upload({dev,file,card}){return new Promise(res=>{
+  const x=new XMLHttpRequest(), m=card.querySelector('.m'), bar=card.querySelector('.bar i'), cancel=card.querySelector('button');
+  x.open('POST',`/api/send?to=${encodeURIComponent(dev.id)}&from=${encodeURIComponent(me.id)}`);
+  x.setRequestHeader('X-File-Name',encodeURIComponent(file.name));
+  x.setRequestHeader('X-From-Name',encodeURIComponent(me.name));
+  x.setRequestHeader('Content-Type','application/octet-stream');
+  let t0=performance.now(),lt=t0,lb=0,spd=0,prev=0;
+  const S=sending[dev.id];
+  x.upload.onprogress=e=>{const now=performance.now();if(now-lt>300){const inst=(e.loaded-lb)/((now-lt)/1000);spd=spd?spd*.6+inst*.4:inst;lt=now;lb=e.loaded}
+    const p=e.total?e.loaded/e.total*100:0;bar.style.width=p.toFixed(1)+'%';
+    m.textContent=`→ ${dev.name} · ${fmtSize(e.loaded)} / ${fmtSize(file.size)} · ${fmtSpeed(spd)} · ${fmtTime((file.size-e.loaded)/spd)} kaldı`;
+    if(S){S.done+=e.loaded-prev;prev=e.loaded;S.pct=Math.min(100,S.done/S.total*100);const r=document.querySelector(`.dev[data-id="${CSS.escape(dev.id)}"] .ring-p`);if(r)r.style.setProperty('--p',S.pct+'%')}};
+  const fin=(ok,msg)=>{cancel.remove();card.classList.add(ok?'ok':'err');bar.style.width=ok?'100%':bar.style.width;
+    const secs=(performance.now()-t0)/1000;
+    m.textContent=ok?`✓ ${dev.name} cihazına gönderildi · ${fmtSize(file.size)} · ort. ${fmtSpeed(file.size/secs)}`:'✗ '+msg;
+    if(S){S.done+=file.size-prev;if(S.done>=S.total-1){delete sending[dev.id];renderDevices()}}res()};
+  x.onload=()=>{let r={};try{r=JSON.parse(x.responseText)}catch(e){}x.status===200?fin(true):fin(false,r.error||('Hata '+x.status))};
+  x.onerror=()=>fin(false,'Bağlantı koptu');x.onabort=()=>fin(false,'İptal edildi');
+  cancel.onclick=()=>x.abort();
+  m.textContent=`→ ${dev.name} · başlıyor…`;
+  x.send(file);
+})}
+
+// ---------- inbox ----------
+const shown=new Set();
+function updBadge(){[$('#badge'),$('#badge2')].forEach(b=>{b.hidden=!unseen;b.textContent=unseen})}
+function inboxEl(){const b=$('#inbox');if(b.querySelector('.muted'))b.innerHTML='';return b}
+const isImg=n=>/\.(jpe?g|png|gif|webp|heic|avif|bmp)$/i.test(n), isVid=n=>/\.(mp4|mov|m4v|webm|mkv)$/i.test(n), isAud=n=>/\.(mp3|m4a|aac|wav|flac|ogg|opus)$/i.test(n);
+const typeIcon=n=>isImg(n)?'i-img':isVid(n)?'i-video':isAud(n)?'i-music':'i-file';
+// iOS: a plain download link opens a preview page with no way back when ZETX DROP
+// runs from the home screen. Use an in-app save sheet instead.
+const IS_IOS=KIND==='iphone'||KIND==='ipad';
+function dlBtn(href,name,cls,label){return IS_IOS?`<button class="${cls}" data-dl>${label}</button>`:`<a class="${cls}" data-dl href="${href}" download="${esc(name)}">${label}</a>`}
+// iPhone gallery save: on the HTTPS page Safari offers the share sheet with
+// "Save Image / Save Video". Files are prefetched so the tap opens it instantly.
+const SECURE=location.protocol==='https:';
+const CAN_SHARE=SECURE&&!!navigator.canShare&&(()=>{try{return navigator.canShare({files:[new File([''],'a.jpg',{type:'image/jpeg'})]})}catch(e){return false}})();
+const toPhotos=n=>isImg(n)||isVid(n);
+const MIME={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',gif:'image/gif',webp:'image/webp',heic:'image/heic',heif:'image/heif',avif:'image/avif',bmp:'image/bmp',mp4:'video/mp4',m4v:'video/x-m4v',mov:'video/quicktime',webm:'video/webm',mkv:'video/x-matroska'};
+const mimeOf=n=>MIME[(n.split('.').pop()||'').toLowerCase()]||'application/octet-stream';
+const PREFETCH_MAX=400*1024*1024, files={};
+function prefetch(t,onp){
+  if(files[t.id])return files[t.id].p;
+  const st={pct:0,file:null,cbs:onp?[onp]:[]};
+  st.p=new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('GET','/api/relay/'+encodeURIComponent(t.id)+'?inline=1');x.responseType='blob';
+    x.onprogress=e=>{st.pct=e.total?e.loaded/e.total*100:0;st.cbs.forEach(f=>f(st.pct))};
+    x.onload=()=>{if(x.status!==200)return rej(new Error('Dosya alınamadı'));st.file=new File([x.response],t.name,{type:mimeOf(t.name)});res(st.file)};
+    x.onerror=()=>rej(new Error('Bağlantı koptu'));x.send()});
+  st.p.catch(()=>delete files[t.id]);files[t.id]=st;return st.p;
+}
+async function shareFile(f){
+  try{await navigator.share({files:[f]});return true}
+  catch(e){if(e&&e.name==='AbortError')return false;toast('Paylaşım açılamadı: '+esc(e.message||e),'err');return false}
+}
+function bindDl(root,t,after){const b=root.querySelector('[data-dl]');if(!b)return;b.onclick=e=>{
+  if(IS_IOS){e.preventDefault();const st=files[t.id];if(CAN_SHARE&&toPhotos(t.name)&&st&&st.file)shareFile(st.file);else openSaver(t)}
+  after&&after()}}
+function secureURL(){return `https://${location.hostname}:${info.httpsPort||8767}/#me=`+encodeURIComponent(JSON.stringify(me))}
+function goSecure(){location.href=secureURL()}
+function openSaver(t){
+  const href='/api/relay/'+encodeURIComponent(t.id), inl=href+'?inline=1';
+  const img=isImg(t.name), vid=isVid(t.name);
+  const sh=$('#saver');
+  sh.querySelector('.sv-t').textContent=t.name;
+  sh.querySelector('.sv-m').textContent=`${t.from} · ${fmtSize(t.size)}`;
+  sh.querySelector('.sv-prev').innerHTML=img?`<img src="${inl}" alt="">`:vid?`<video src="${inl}" controls playsinline preload="metadata"></video>`:`<svg><use href="#${typeIcon(t.name)}"/></svg>`;
+  sh.querySelector('.sv-help').innerHTML=img
+    ?(CAN_SHARE?'📸 <b>Galeriye Kaydet</b> → <b>"Görüntüyü Kaydet"</b>. Ya da görsele basılı tutup <b>"Fotoğraflar\'a Ekle"</b>.':'📸 Görsele <b>basılı tutun → "Fotoğraflar\'a Ekle"</b>. Tek dokunuşla kaydetmek için <b>Galeriye Kaydet</b>\'e dokunup bir kez kurulum yapın.')
+    :vid?(CAN_SHARE?(t.size<=PREFETCH_MAX?'🎬 <b>Galeriye Kaydet</b> → <b>"Videoyu Kaydet"</b>.':'🎬 Video çok büyük; "Dosyalar\'a indir" ile kaydedin, sonra Dosyalar\'dan <b>Paylaş → Videoyu Kaydet</b>.'):'🎬 Doğrudan galeriye kaydetmek için <b>Galeriye Kaydet</b>\'e dokunup bir kez kurulum yapın. Ya da "Dosyalar\'a indir" kullanın.')
+    :'📁 "Dosyalar\'a indir"e dokunun → <b>İndir</b>. Dosya, Dosyalar uygulamasında <b>İndirilenler</b> klasörüne kaydedilir.';
+  sh.querySelector('.sv-open').onclick=()=>{const w=window.open(href,'_blank');if(!w)location.href=href};
+  const ph=sh.querySelector('.sv-photos');ph.hidden=!toPhotos(t.name);ph.disabled=false;ph.textContent='📸 Galeriye Kaydet';
+  if(toPhotos(t.name)&&CAN_SHARE){
+    if(t.size<=PREFETCH_MAX){const st=files[t.id];
+      if(!(st&&st.file)){ph.disabled=true;ph.textContent='Hazırlanıyor…';
+        prefetch(t,p=>{ph.textContent='Hazırlanıyor… %'+p.toFixed(0)}).then(()=>{ph.disabled=false;ph.textContent='📸 Galeriye Kaydet'}).catch(e=>{ph.textContent='✗ '+e.message})}
+      ph.onclick=async()=>{const st=files[t.id];if(st&&st.file&&await shareFile(st.file))closeSaver()};
+    }else{ph.hidden=true}
+  }else if(toPhotos(t.name)){
+    ph.onclick=()=>{closeSaver();go('settings');setTimeout(()=>$('#gsCard').scrollIntoView({behavior:'smooth'}),100)};
+  }
+  sh.classList.add('on');document.body.style.overflow='hidden';
+}
+function closeSaver(){const sh=$('#saver');sh.classList.remove('on');sh.querySelector('.sv-prev').innerHTML='';document.body.style.overflow=''}
+function onIncoming(m){
+  const t=m.transfer;if(shown.has(t.id))return;shown.add(t.id);
+  const el=document.createElement('div');el.className='item';
+  const href='/api/relay/'+encodeURIComponent(t.id);
+  el.innerHTML=`<div class="ic">${isImg(t.name)?`<img src="${href}?inline=1" alt="">`:`<svg><use href="#${typeIcon(t.name)}"/></svg>`}</div><div class="mid"><div class="t">${esc(t.name)}</div><div class="m">${esc(t.from)} · ${fmtSize(t.size)}</div></div>${dlBtn(href,t.name,'btn sm pri','<svg><use href="#i-dl"/></svg>Kaydet')}<button class="btn sm" data-x title="Kaldır"><svg><use href="#i-x"/></svg></button>`;
+  el.querySelector('[data-x]').onclick=()=>{fetch(href+'/dismiss',{method:'POST'});el.remove();if(!$('#inbox').children.length)$('#inbox').innerHTML='<div class="muted">Henüz gelen dosya yok</div>'};
+  bindDl(el,t,()=>el.classList.add('ok'));
+  inboxEl().prepend(el);
+  if(!$('#p-inbox').classList.contains('on')){unseen++;updBadge()}
+  const ts=toast(`<b>${esc(t.from)}</b> size dosya gönderdi:<br>${esc(t.name)} · ${fmtSize(t.size)}<div class="row">${dlBtn(href,t.name,'btn sm pri','Kaydet')}<button class="btn sm" onclick="go('inbox');this.closest('.toast').remove()">Gelenler</button></div>`,'ok',9000);
+  bindDl(ts,t,()=>{el.classList.add('ok');ts.remove()});
+  if(IS_IOS&&CAN_SHARE&&toPhotos(t.name)&&t.size<=PREFETCH_MAX)prefetch(t).catch(()=>{});
+  if(navigator.vibrate)navigator.vibrate(120);
+}
+function onReceived(m){addReceived(m.item,true)}
+function addReceived(r,live){
+  const el=document.createElement('div');el.className='item ok';
+  el.innerHTML=`<div class="ic"><svg><use href="#${typeIcon(r.name)}"/></svg></div><div class="mid"><div class="t">${esc(r.name)}</div><div class="m">${esc(r.from)} · ${fmtSize(r.size)} · ${new Date(r.time*1000).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</div></div><button class="btn sm" data-a="open">Aç</button><button class="btn sm" data-a="select"><svg><use href="#i-folder"/></svg></button>`;
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>fetch(`/api/open?mode=${b.dataset.a}&path=${encodeURIComponent(r.path)}`));
+  live?inboxEl().prepend(el):inboxEl().appendChild(el);
+  if(live){if(!$('#p-inbox').classList.contains('on')){unseen++;updBadge()}toast(`📥 <b>${esc(r.from)}</b> → ${esc(r.name)} (${fmtSize(r.size)}) kaydedildi`,'ok')}
+}
+async function loadReceived(){if(!IS_HOST)return;try{const r=await (await fetch('/api/received')).json();(r.items||[]).forEach(i=>addReceived(i,false))}catch(e){}}
+const openF=()=>fetch('/api/open?mode=folder');$('#openFolder').onclick=openF;$('#openFolder2').onclick=openF;
+
+// ---------- media ----------
+let mInfo=null,mode='video',height=0,bitrate=320;
+$('#pasteBtn').onclick=async()=>{try{const t=await navigator.clipboard.readText();if(t){$('#murl').value=t.trim();analyze()}}catch(e){toast('Panoya erişilemedi — bağlantıyı elle yapıştırın','err')}};
+if(!navigator.clipboard||!window.isSecureContext)$('#pasteBtn').style.display='none';
+$('#murl').addEventListener('keydown',e=>{if(e.key==='Enter')analyze()});
+$('#murl').addEventListener('paste',()=>setTimeout(analyze,50));
+$('#anBtn').onclick=analyze;
+let anBusy=false;
+async function analyze(){
+  const url=$('#murl').value.trim();if(!url||anBusy)return;
+  anBusy=true;const b=$('#anBtn');b.disabled=true;b.textContent='Analiz ediliyor…';$('#info').classList.remove('on');
+  try{
+    const r=await (await fetch('/api/media/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,cookies:$('#cookies').value})})).json();
+    if(!r.ok)throw new Error(r.error);
+    mInfo=r;showInfo(r);
+  }catch(e){toast('⚠️ '+esc(e.message||'Analiz başarısız'),'err',7000)}
+  finally{anBusy=false;b.disabled=false;b.textContent='Analiz Et'}
+}
+const resLabel=h=>h>=4320?'8K':h>=2160?'4K':h>=1440?'2K':h+'p';
+function showInfo(r){
+  $('#info').classList.add('on');
+  $('#thumb').style.backgroundImage=r.thumbnail?`url("${r.thumbnail.replace(/"/g,'%22')}")`:'';
+  $('#mtitle').textContent=r.title||(r.imageOnly?'Görsel gönderi':'Medya');
+  const d=r.duration?`${Math.floor(r.duration/60)}:${String(Math.round(r.duration%60)).padStart(2,'0')}`:'';
+  $('#mmeta').textContent=[r.site,r.uploader,d,r.playlist?`${r.count} öğe`:''].filter(Boolean).join(' · ');
+  const hs=r.heights||[];
+  const pref=hs.find(h=>h<=1080)||hs[0]||0;height=pref;
+  $('#resChips').innerHTML=`<span class="chip${height===0?' on':''}" data-h="0">En iyi</span>`+hs.map(h=>`<span class="chip${h===height?' on':''}" data-h="${h}">${resLabel(h)}${h>=720?'<small>HD</small>':''}</span>`).join('');
+  $$('#resChips .chip').forEach(c=>c.onclick=()=>{height=+c.dataset.h;$$('#resChips .chip').forEach(x=>x.classList.toggle('on',x===c))});
+  const note=$('#mnote');
+  if(r.imageOnly){setMode('image');note.innerHTML='Bu bağlantıda video bulunamadı, <b>Görsel</b> modu seçildi.'+(r.note?`<br><small>${esc(r.note)}</small>`:'');note.classList.add('on')}
+  else{setMode(hs.length||r.hasVideo?'video':'mp3');note.classList.remove('on')}
+}
+function setMode(m){mode=m;$$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));$('#vOpts').hidden=m!=='video';$('#aOpts').hidden=m!=='mp3';$('#iOpts').hidden=m!=='image';$('#compatWrap').style.display=m==='video'?'':'none'}
+$$('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+$$('#brChips .chip').forEach(c=>c.onclick=()=>{bitrate=+c.dataset.b;$$('#brChips .chip').forEach(x=>x.classList.toggle('on',x===c))});
+function renderTargets(){
+  const sel=$('#target'),cur=sel.value;
+  const mine=IS_HOST?{id:'host',name:'Bu PC ('+(info.name||'PC')+')'}:{id:me.id,name:'Bu telefon ('+me.name+')'};
+  const opts=[mine,...others().map(d=>({id:d.id,name:d.name+' · '+(KIND_LABEL[d.kind]||'')}))];
+  sel.innerHTML=opts.map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('');
+  if(opts.some(o=>o.id===cur))sel.value=cur;
+}
+$('#dlBtn').onclick=async()=>{
+  const url=$('#murl').value.trim();if(!url)return;
+  const body={url,mode,height,bitrate,compat:$('#compat').checked,cookies:$('#cookies').value,target:$('#target').value,from:me.id};
+  try{const r=await (await fetch('/api/media/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+    if(!r.ok)throw new Error(r.error);addJob(r.job,body)}catch(e){toast('⚠️ '+esc(e.message),'err')}
+};
+const jobEls={};
+function addJob(id,b){
+  const box=$('#jobs');if(box.querySelector('.muted'))box.innerHTML='';
+  const tgt=$('#target').selectedOptions[0]?.textContent||'';
+  const lbl=b.mode==='mp3'?`MP3 ${b.bitrate} kbps`:b.mode==='image'?'Görsel':`Video ${b.height?resLabel(b.height):'en iyi'}`;
+  const el=document.createElement('div');el.className='item';
+  el.innerHTML=`<div class="ic">${mInfo&&mInfo.thumbnail?`<img src="${esc(mInfo.thumbnail)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:`<svg><use href="#${b.mode==='mp3'?'i-music':b.mode==='image'?'i-img':'i-video'}"/></svg>`}</div><div class="mid"><div class="t">${esc(mInfo?.title||b.url)}</div><div class="m">${lbl} → ${esc(tgt)} · hazırlanıyor…</div><div class="bar"><i></i></div></div><button class="btn sm danger">İptal</button>`;
+  el.querySelector('button').onclick=()=>fetch('/api/media/cancel?id='+id,{method:'POST'});
+  el._lbl=lbl+' → '+tgt;box.prepend(el);jobEls[id]=el;
+}
+function onJob(j){
+  let el=jobEls[j.id];
+  if(!el){addJob(j.id,{mode:j.mode,url:j.url,height:0,bitrate:320});el=jobEls[j.id];el.querySelector('.t').textContent=j.url}
+  const m=el.querySelector('.m'),bar=el.querySelector('.bar i');
+  if(j.state==='dl'){bar.style.width=(j.pct||0)+'%';m.textContent=`${el._lbl} · %${(j.pct||0).toFixed(1)}`+(j.speed?` · ${j.speed}`:'')+(j.eta&&j.eta!=='NA'?` · ${j.eta} kaldı`:'')+(j.msg&&j.msg!=='İndiriliyor'?` · ${j.msg}`:'')}
+  else if(j.state==='post'||j.state==='prep'){m.textContent=`${el._lbl} · ${j.msg}`;if(j.state==='post')bar.style.width='100%'}
+  else if(j.state==='done'){el.classList.add('ok');bar.style.width='100%';m.textContent='✓ Tamamlandı · '+j.msg;el.querySelector('button')?.remove();toast('✅ İndirme tamamlandı: '+esc(j.msg),'ok')}
+  else if(j.state==='error'){el.classList.add('err');m.textContent='✗ '+j.msg;el.querySelector('button')?.remove()}
+}
+function onTool(t){const b=$('#toolBanner');if(t.pct>=100||t.pct<0){b.classList.remove('on');return}b.classList.add('on');b.innerHTML=`⚙️ İlk kullanım: <b>${esc(t.label)}</b> kuruluyor… %${t.pct} <span style="color:var(--mut)">${esc(t.msg)}</span><div class="bar"><i style="width:${t.pct}%"></i></div>`}
+
+// ---------- settings ----------
+async function setS(o){const r=await (await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(o)})).json();if(!r.ok){toast(esc(r.error),'err');return false}toast('Kaydedildi','ok',2000);return true}
+$('#sNameSave').onclick=async()=>{const n=$('#sName').value.trim();if(!n)return;
+  if(IS_HOST){if(await setS({deviceName:n}))loadInfo()}
+  else{me.name=n;saveMe();$('#meName').textContent=n;es&&es.close();connect();toast('Kaydedildi','ok',2000)}};
+$('#sDirSave').onclick=async()=>{if(await setS({saveDir:$('#sDir').value.trim()}))loadInfo()};
+$('#sRecv').onchange=e=>setS({receive:e.target.checked});
+$('#sQuit').onchange=e=>setS({quitOnClose:e.target.checked});
+$('#sAuto').onchange=e=>setS({autostart:e.target.checked});
+if(!IS_IOS)$('#gsCard').style.display='none';
+$('#gsProfile').onclick=()=>{location.href='/ZETX-DROP.mobileconfig'};
+$('#gsGo').onclick=goSecure;
+async function applyGallery(){
+  if(!IS_IOS)return;
+  if(CAN_SHARE){$('#gsDone').hidden=false;$('#gsSetup').hidden=true;return}
+  if(SECURE)return;
+  // Certificate already trusted? Then move to the secure page automatically.
+  try{const r=await fetch(`https://${location.hostname}:${info.httpsPort||8767}/api/ping`,{cache:'no-store'});
+    if(r.ok){if(navigator.standalone){$('#gsDone').hidden=false;$('#gsDone').innerHTML='<p class="tip" style="margin-top:0">✅ Sertifika hazır. <button class="btn sm pri" onclick="goSecure()">Galeri moduna geç</button> → açılan sayfada <b>Paylaş → Ana Ekrana Ekle</b>.</p>';$('#gsSetup').hidden=true}else goSecure()}}catch(e){}
+}
+$('#fwBtn').onclick=async()=>{const r=await (await fetch('/api/firewall',{method:'POST'})).json();toast(r.ok?'Yönetici onayı penceresinde "Evet" deyin.':esc(r.error),r.ok?'ok':'err')};
+$('#toolsBtn').onclick=async()=>{await fetch('/api/tools',{method:'POST'});toast('Motorlar güncelleniyor…')};
+$('#quitBtn').onclick=async()=>{if(!confirm('ZETX DROP tamamen kapatılsın mı? Dosya alımı duracak.'))return;await fetch('/api/quit',{method:'POST'});document.body.innerHTML='<div style="display:grid;place-items:center;height:100vh;color:#8b98bd;font-family:Segoe UI">ZETX DROP kapatıldı. Bu pencereyi kapatabilirsiniz.</div>';setTimeout(()=>window.close(),800)};
+
+try{const h=location.hash.match(/me=([^&]+)/);if(h){const m=JSON.parse(decodeURIComponent(h[1]));if(m&&m.id&&m.name&&!m.id.startsWith('hostui')){me=m;saveMe()}history.replaceState(null,'',location.pathname)}}catch(e){}
+loadInfo().then(()=>{applyGallery();connect();loadReceived()});
+</script>
+</body>
+</html>

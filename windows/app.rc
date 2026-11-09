@@ -1,0 +1,27 @@
+1 ICON "icon.ico"
+1 24 "app.manifest"
+1 VERSIONINFO
+FILEVERSION 1,2,0,0
+PRODUCTVERSION 1,2,0,0
+FILEOS 0x40004
+FILETYPE 0x1
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "041F04B0"
+    BEGIN
+      VALUE "CompanyName", "ZETX - Volkan Sezer"
+      VALUE "FileDescription", "ZETX DROP - Hizli dosya aktarimi ve medya indirici"
+      VALUE "FileVersion", "1.2.0"
+      VALUE "InternalName", "ZETX DROP"
+      VALUE "LegalCopyright", "(c) 2026 Volkan Sezer"
+      VALUE "OriginalFilename", "ZETX DROP.exe"
+      VALUE "ProductName", "ZETX DROP"
+      VALUE "ProductVersion", "1.2.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x041F, 1200
+  END
+END
